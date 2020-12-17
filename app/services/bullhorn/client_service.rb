@@ -235,7 +235,7 @@ class Bullhorn::ClientService < BaseService
         attributes['address']['countryID'] = get_country(answer) if answer.present?
       when 'category', 'categoryID'
         # FIND category ID
-        bh_categories = @client.categories
+        bh_categories = @client.categories, fields: 'id'
        
         categories = bh_categories.data.select { |c| Array(answer).include? c.name }
         
@@ -277,7 +277,7 @@ class Bullhorn::ClientService < BaseService
         bullhorn_id = nil
       else
         email_query = "email:\"#{URI::encode(user.email)}\""
-        existing_candidates = @client.search_candidates(query: email_query, sort: 'id')
+        existing_candidates = @client.search_candidates(query: email_query, sort: 'id', fields: 'id')
 
         # isDeleted BOOLEAN CAN'T BE QUERIED SO NEED TO EXTRACT UNDELETED CANDIDATES
         active_candidates = existing_candidates.data.select{ |c| c.isDeleted == false }
@@ -302,7 +302,7 @@ class Bullhorn::ClientService < BaseService
 
     # CREATE/UPDATE CANDIDATE
     if bullhorn_id.present?
-      candidate = @client.candidate(user.bullhorn_uid, {})
+      candidate = @client.candidate(user.bullhorn_uid, fields: 'status')
       if candidate.data.status == 'Inactive'
         attributes['status'] = @bullhorn_setting.status_text.present? ? @bullhorn_setting.status_text : 'New Lead'
       end
@@ -384,7 +384,7 @@ class Bullhorn::ClientService < BaseService
   end
 
   def send_associations(association, method, field_mappings, user)
-    associations = @client.send(method) rescue nil
+    associations = @client.send(method, fields: 'id,name') rescue nil
     mapping = field_mappings.find_by(bullhorn_field_name: association)
 
     if associations.present? && mapping.present?
@@ -451,7 +451,7 @@ class Bullhorn::ClientService < BaseService
           sectors = []
           job.businessSectors.data.each do |bs|
             # puts "--- bs[:id] = #{bs[:id]}"
-            b_sector = client.business_sector(bs[:id])
+            b_sector = client.business_sector(bs[:id], fields: 'name')
             # puts "--- b_sector = #{b_sector.inspect}"
             sectors << b_sector.data.name.strip
           end
@@ -837,7 +837,7 @@ class Bullhorn::ClientService < BaseService
     @job_payload['job[job_title]'] = job.title
 
     #GET BULLHORN USER DATA
-    c_user = @client.corporate_user(job.owner.id)
+    c_user = @client.corporate_user(job.owner.id, fields: 'email')
 
     @job_payload['job[application_email]'] = c_user.data.email
     @job_payload['job[contact_name]'] = "#{job.owner.firstName} #{job.owner.lastName}"
@@ -847,7 +847,7 @@ class Bullhorn::ClientService < BaseService
       # puts "--- bs[:id] = #{bs[:id]}"
 
       #GET BULLHORN CLIENT DISCIPLINES ASSOCIATED TO THE JOB
-      b_sector = @client.business_sector(bs[:id])
+      b_sector = @client.business_sector(bs[:id], fields: 'name')
 
       disciplines << b_sector.data.name.strip
     end
