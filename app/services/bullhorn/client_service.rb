@@ -235,7 +235,7 @@ class Bullhorn::ClientService < BaseService
         attributes['address']['countryID'] = get_country(answer) if answer.present?
       when 'category', 'categoryID'
         # FIND category ID
-        bh_categories = @client.categories, fields: 'id'
+        bh_categories = @client.categories(fields: 'id')
        
         categories = bh_categories.data.select { |c| Array(answer).include? c.name }
         
