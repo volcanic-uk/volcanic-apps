@@ -277,7 +277,7 @@ class Bullhorn::ClientService < BaseService
         bullhorn_id = nil
       else
         email_query = "email:\"#{URI::encode(user.email)}\""
-        existing_candidates = @client.search_candidates(query: email_query, sort: 'id', fields: 'id')
+        existing_candidates = @client.search_candidates(query: email_query, sort: 'id', fields: 'id,isDeleted')
 
         # isDeleted BOOLEAN CAN'T BE QUERIED SO NEED TO EXTRACT UNDELETED CANDIDATES
         active_candidates = existing_candidates.data.select{ |c| c.isDeleted == false }
