@@ -85,7 +85,7 @@ class BullhornJobImport
         @job_payload['job[job_title]'] = job.title
         # CORPORATE USER?
         puts "--- job.owner = #{job.owner}"
-        c_user = client.corporate_user(job.owner.id)
+        c_user = client.corporate_user(job.owner.id, fields: 'email')
         # app_email = job.xpath('author').text.strip.split.first.strip
         @job_payload['job[application_email]'] = @job_payload['job[contact_email]'] = c_user.data.email
         @job_payload['job[contact_name]'] = "#{job.owner.firstName} #{job.owner.lastName}"
@@ -124,7 +124,7 @@ class BullhornJobImport
               disciplines = []
               job.businessSectors.data.each do |bs|
                 # puts "--- bs[:id] = #{bs[:id]}"
-                b_sector = client.business_sector(bs[:id])
+                b_sector = client.business_sector(bs[:id], fields: 'name')
                 # puts "--- b_sector = #{b_sector.inspect}"
                 disciplines << b_sector.data.name.strip
               end
